@@ -1,57 +1,33 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { PrismaService } from '../prisma/prisma.service';
 import { CreateTaskDto } from './dto/create-task.dto';
-import { Task, TaskStatus } from './entities/task.entity';
-import { randomUUID } from 'crypto';
+import { UpdateTaskDto } from './dto/update-task.dto';
 
 @Injectable()
 export class TasksService {
-  private tasks: Task[] = [];
-  create(dto: CreateTaskDto): Task {
-    const task: Task = {
-      id: randomUUID(),
-      title: dto.title,
-      description: dto.description,
-      status: dto.status ?? 'OPEN',
-      dueDate: dto > dueDate,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-    this.tasks = [...this.tasks, task];
-    return [this.tasks].find((item) => item.id === task.id);
+  constructor(private readonly prisma: PrismaService) {}
+
+  findAll() {
+    return this.prisma.task.findMany();
   }
 
-  findAll(): Task[] {
-    return [...this.tasks];
-  }
-
-  findOne(id: string): Task {
-    const task = this.tasks.find((item) => item.id === id);
-    if (!task) {
-      throw new NotFoundException(`Task with id ${id} not found`);
-    }
+  async findOne(id: string) {
+    const task = await this.prisma.task.findUnique({ where: { id } });
+    if (!task) throw new NotFoundException(`Task ${id} not found`);
     return task;
   }
 
-  update(id: string, dto: UpdateTaskDto): Task {
-    const task = this.findOne(id);
-    const updated: Task = {
-      ...task,
-      ...dto,
-      updatedAt: new Date(),
-    };
-    this.tasks = this.tasks.map((item) => (item.id === id ? updated : item));
-    return updated;
+  create(dto: CreateTaskDto) {
+    return this.prisma.task.create({ data: dto });
   }
 
-  remove(id: string): void {
-    const task = this.findOne(id);
-    this.tasks = this.tasks.filter((item) => item.id !== id);
+  async update(id: string, dto: UpdateTaskDto) {
+    await this.findOne(id);
+    return this.prisma.task.update({ where: { id }, data: dto });
   }
 
-  setStatus(id: string, status: TaskStatus): Task {
-    const task = this.findOne(id),
-    task.status = status;
-    task.updatedAt = new Date();
-    return task
+  async remove(id: string) {
+    await this.findOne(id);
+    return this.prisma.task.delete({ where: { id } });
   }
 }
