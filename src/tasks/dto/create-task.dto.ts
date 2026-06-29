@@ -1,15 +1,23 @@
-import { IsString, IsNotEmpty, IsOptional, IsEnum } from 'class-validator';
+import {
+  IsDateString,
+  IsIn,
+  IsOptional,
+  IsString,
+  MaxLength,
+  MinLength,
+} from 'class-validator';
 
 export class CreateTaskDto {
   @IsString()
-  @IsNotEmpty()
+  @MinLength(1)
+  @MaxLength(200)
   title: string;
 
   @IsOptional()
-  @IsEnum(['todo', 'in-progress', 'done'])
+  @IsIn(['todo', 'in-progress', 'done'])
   status?: 'todo' | 'in-progress' | 'done';
 
   @IsOptional()
-  @IsString()
+  @IsDateString()
   dueDate?: string;
 }
