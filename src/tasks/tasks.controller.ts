@@ -16,6 +16,8 @@ import { UpdateTaskDto } from './dto/update-task.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { CurrentUser } from '../auth/current-user.decorator';
 import type { AuthUser } from '../auth/current-user.decorator';
+import { FindTasksDto } from './dto/find-tasks.dto';
+import type { User } from '../../generated/prisma/client.js';
 
 @Controller('tasks')
 @UseGuards(JwtAuthGuard)
@@ -23,9 +25,8 @@ export class TasksController {
   constructor(private readonly tasksService: TasksService) {}
 
   @Get()
-  @HttpCode(HttpStatus.OK)
-  findAll(@CurrentUser() user: AuthUser) {
-    return this.tasksService.findAll(user.id);
+  findAll(@CurrentUser() user: AuthUser, @Query() query: FindTasksDto) {
+    return this.tasksService.findAllForUser(user.id, query);
   }
 
   @Get(':id')
